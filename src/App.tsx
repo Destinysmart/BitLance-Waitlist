@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Zap, Globe2, ShieldCheck, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { collection, addDoc, getDocs, limit, onSnapshot, orderBy, query, serverTimestamp, where } from 'firebase/firestore';
+import { Zap, Globe2, ShieldCheck, CheckCircle2, RefreshCw, Mail, Search, Inbox, FileSpreadsheet, FileDown } from 'lucide-react';
+import { db } from './firebase';
 
 // Reusable elegant fade-in wrapper
 const FadeIn = ({ children, delay = 0, className = "" }: { children: React.ReactNode, delay?: number, className?: string }) => (
@@ -15,6 +17,12 @@ const FadeIn = ({ children, delay = 0, className = "" }: { children: React.React
 );
 
 export default function App() {
+  const pathname = typeof window !== 'undefined' ? window.location.pathname.replace(/\/+$/, '') || '/' : '/';
+
+  if (pathname === '/admin/waitlist') {
+    return <WaitlistAdminPage />;
+  }
+
   return (
     <div className="relative min-h-screen font-sans overflow-hidden selection:bg-orange-100 selection:text-orange-900 flex flex-col bg-gradient-to-b from-[#fafafa] via-white to-[#f5f5f5]">
       
@@ -60,6 +68,371 @@ export default function App() {
   );
 }
 
+type WaitlistEntry = {
+  id: string;
+  email: string;
+  createdAtLabel: string;
+  submittedAt: string | null;
+};
+
+function WaitlistAdminPage() {
+  const [entries, setEntries] = useState<WaitlistEntry[]>([]);
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [lastUpdated, setLastUpdated] = useState('');
+
+  useEffect(() => {
+    const waitlistRef = collection(db, 'waitlist');
+    const waitlistQuery = query(waitlistRef, orderBy('createdAt', 'desc'));
+
+    const unsubscribe = onSnapshot(
+      waitlistQuery,
+      (snapshot) => {
+        const nextEntries = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          const createdAt = data.createdAt?.toDate?.() ?? (data.submittedAt ? new Date(data.submittedAt) : null);
+
+          return {
+            id: doc.id,
+            email: typeof data.email === 'string' ? data.email : '',
+            createdAtLabel: createdAt
+              ? new Intl.DateTimeFormat('en-US', {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                }).format(createdAt)
+              : 'No timestamp',
+            submittedAt: typeof data.submittedAt === 'string' ? data.submittedAt : null,
+          };
+        });
+
+        setEntries(nextEntries);
+        setStatus('ready');
+        setErrorMessage('');
+        setLastUpdated(
+          new Intl.DateTimeFormat('en-US', {
+            dateStyle: 'medium',
+            timeStyle: 'short',
+          }).format(new Date()),
+        );
+      },
+      (error) => {
+        console.error('Failed to fetch waitlist entries:', error);
+        setStatus('error');
+        setErrorMessage('The waitlist could not be loaded. Check your Firestore rules and indexes.');
+      },
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const filteredEntries = entries.filter((entry) => {
+    if (!normalizedSearch) return true;
+
+    return (
+      entry.email.toLowerCase().includes(normalizedSearch) ||
+      entry.createdAtLabel.toLowerCase().includes(normalizedSearch)
+    );
+  });
+
+  const exportCsv = () => {
+    if (filteredEntries.length === 0) return;
+
+    const rows = [
+      ['Email', 'Joined', 'Submitted At'],
+      ...filteredEntries.map((entry) => [entry.email, entry.createdAtLabel, entry.submittedAt ?? '']),
+    ];
+
+    const csv = rows
+      .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'bitlance-waitlist.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportPdf = () => {
+    window.print();
+  };
+
+  return (
+    // <div className="min-h-screen bg-zinc-50 text-zinc-950 print:bg-white">
+    //   <div className="mx-auto flex min-h-screen w-full max-w-4xl flex-col px-4 py-6 sm:px-6">
+    //     <header className="mb-6 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm print:mb-4 print:rounded-none print:border-none print:p-0 print:shadow-none">
+    //       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    //         <div>
+    //           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">Admin / Waitlist</p>
+    //           <h1 className="mt-2 text-2xl font-semibold text-zinc-950 sm:text-3xl">Waitlist emails</h1>
+    //           <p className="mt-1 text-sm text-zinc-500">
+    //             Search emails and export the visible results.
+    //           </p>
+    //         </div>
+
+    //         <div className="text-sm text-zinc-500 print:hidden">
+    //           {status === 'loading' ? 'Loading...' : `${filteredEntries.length} email${filteredEntries.length === 1 ? '' : 's'}`}
+    //         </div>
+    //       </div>
+
+    //       <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+    //         <label className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-zinc-200 bg-white px-4 py-3 transition-colors focus-within:border-zinc-400">
+    //           <Search className="h-4 w-4 flex-shrink-0 text-zinc-400" />
+    //           <input
+    //             type="search"
+    //             value={searchTerm}
+    //             onChange={(e) => setSearchTerm(e.target.value)}
+    //             placeholder="Search email"
+    //             className="w-full bg-transparent text-sm text-zinc-900 outline-none placeholder:text-zinc-400"
+    //           />
+    //         </label>
+
+    //         <div className="flex gap-3 print:hidden">
+    //           <button
+    //             type="button"
+    //             onClick={exportCsv}
+    //             disabled={filteredEntries.length === 0}
+    //             className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
+    //           >
+    //             <FileSpreadsheet className="h-4 w-4" />
+    //             Spreadsheet
+    //           </button>
+    //           <button
+    //             type="button"
+    //             onClick={exportPdf}
+    //             disabled={filteredEntries.length === 0}
+    //             className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-zinc-950 px-4 text-sm font-medium text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+    //           >
+    //             <FileDown className="h-4 w-4" />
+    //             PDF
+    //           </button>
+    //         </div>
+    //       </div>
+    //     </header>
+
+    //     <main className="flex-1">
+    //       <section className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm print:rounded-none print:border-none print:shadow-none">
+    //         <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4">
+    //           <div>
+    //             <h2 className="text-lg font-semibold text-zinc-950">Emails</h2>
+    //             <p className="text-sm text-zinc-500">
+    //               {filteredEntries.length} of {entries.length} visible
+    //             </p>
+    //           </div>
+
+    //           {status === 'loading' ? (
+    //             <div className="inline-flex items-center gap-2 text-sm text-zinc-500">
+    //               <RefreshCw className="h-4 w-4 animate-spin" />
+    //               Loading
+    //             </div>
+    //           ) : null}
+    //         </div>
+
+    //         {status === 'error' ? (
+    //           <div className="flex min-h-[320px] flex-col items-center justify-center px-6 text-center">
+    //             <div className="mb-4 rounded-2xl bg-red-50 p-4 text-red-500 print:hidden">
+    //               <Inbox className="h-8 w-8" />
+    //             </div>
+    //             <h3 className="text-lg font-semibold text-zinc-950">Could not load the waitlist</h3>
+    //             <p className="mt-2 max-w-md text-sm leading-6 text-zinc-500">{errorMessage}</p>
+    //           </div>
+    //         ) : null}
+
+    //         {status !== 'error' && filteredEntries.length === 0 ? (
+    //           <div className="flex min-h-[320px] flex-col items-center justify-center px-6 text-center">
+    //             <div className="mb-4 rounded-2xl bg-orange-50 p-4 text-orange-500 print:hidden">
+    //               <Search className="h-8 w-8" />
+    //             </div>
+    //             <h3 className="text-lg font-semibold text-zinc-950">
+    //               {entries.length === 0 ? 'No emails yet' : 'No matches found'}
+    //             </h3>
+    //             <p className="mt-2 max-w-md text-sm leading-6 text-zinc-500">
+    //               {entries.length === 0
+    //                 ? 'New waitlist submissions will appear here as soon as they land in Firestore.'
+    //                 : 'Try a different search term to find the waitlist entry you need.'}
+    //             </p>
+    //           </div>
+    //         ) : null}
+
+    //         {status !== 'error' && filteredEntries.length > 0 ? (
+    //           <div className="overflow-x-auto">
+    //             <table className="min-w-full border-collapse">
+    //               <thead className="bg-zinc-50">
+    //                 <tr className="text-left text-xs uppercase tracking-[0.18em] text-zinc-500">
+    //                   <th className="px-5 py-4 font-semibold">Email</th>
+    //                   <th className="px-5 py-4 font-semibold">Joined</th>
+    //                 </tr>
+    //               </thead>
+    //               <tbody>
+    //                 {filteredEntries.map((entry, index) => (
+    //                   <tr
+    //                     key={entry.id}
+    //                     className={index % 2 === 0 ? 'bg-white' : 'bg-zinc-50/50'}
+    //                   >
+    //                     <td className="px-5 py-4">
+    //                       <p className="font-medium text-zinc-950">{entry.email}</p>
+    //                     </td>
+    //                     <td className="px-5 py-4 text-sm text-zinc-600">
+    //                       <p className="font-medium text-zinc-900">{entry.createdAtLabel}</p>
+    //                       <p className="text-xs text-zinc-500">
+    //                         {entry.submittedAt ?? 'Timestamp synced from Firestore'}
+    //                       </p>
+    //                     </td>
+    //                   </tr>
+    //                 ))}
+    //               </tbody>
+    //             </table>
+    //           </div>
+    //         ) : null}
+    //       </section>
+    //     </main>
+    //   </div>
+    // </div>
+    <div className="min-h-screen bg-[#fafafa] font-sans text-slate-900 selection:bg-indigo-100 print:bg-white">
+  <div className="mx-auto flex max-w-5xl flex-col px-6 py-10">
+    
+    {/* Header Section */}
+    <header className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+      <div className="space-y-1">
+        <nav className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-indigo-600">
+          <span className="opacity-60">Admin</span>
+          <span className="h-1 w-1 rounded-full bg-slate-300"></span>
+          <span>Waitlist</span>
+        </nav>
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Waitlist Emails</h1>
+        <p className="max-w-md text-slate-500">
+          Manage your early access queue and export customer data for marketing campaigns.
+        </p>
+      </div>
+
+      <div className="flex items-center gap-3 print:hidden">
+        <button
+          onClick={exportCsv}
+          disabled={filteredEntries.length === 0}
+          className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:text-slate-900 active:scale-95 disabled:opacity-50"
+        >
+          <FileSpreadsheet className="h-4 w-4" />
+          Export CSV
+        </button>
+        <button
+          onClick={exportPdf}
+          disabled={filteredEntries.length === 0}
+          className="inline-flex h-11 items-center gap-2 rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white shadow-lg shadow-slate-200 transition-all hover:bg-slate-800 active:scale-95 disabled:opacity-50"
+        >
+          <FileDown className="h-4 w-4" />
+          PDF Report
+        </button>
+      </div>
+    </header>
+
+    {/* Search & Stats Bar */}
+    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
+      <div className="relative flex-1">
+        <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <input
+          type="search"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search by email address..."
+          className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm transition-all focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+        />
+      </div>
+      <div className="flex items-center gap-3 px-2 text-sm font-medium text-slate-500">
+        <span className="flex h-2 w-2 rounded-full bg-emerald-500"></span>
+        {status === 'loading' ? (
+          <span className="animate-pulse">Syncing...</span>
+        ) : (
+          <span>{filteredEntries.length} Records found</span>
+        )}
+      </div>
+    </div>
+
+    {/* Main Content Area */}
+    <main className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl shadow-slate-200/50 print:border-none print:shadow-none">
+      
+      {/* Loading Overlay */}
+      {status === 'loading' && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-[2px]">
+          <RefreshCw className="h-6 w-6 animate-spin text-indigo-600" />
+        </div>
+      )}
+
+      {/* Error State */}
+      {status === 'error' && (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+            <Inbox className="h-8 w-8" />
+          </div>
+          <h3 className="text-xl font-bold text-slate-900">Connection Failed</h3>
+          <p className="mt-2 max-w-xs text-slate-500">{errorMessage}</p>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {status !== 'error' && filteredEntries.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50 text-slate-400">
+            <Search className="h-7 w-7" />
+          </div>
+          <h3 className="text-lg font-bold text-slate-900">
+            {entries.length === 0 ? 'Queue is empty' : 'No results found'}
+          </h3>
+          <p className="mt-1 text-slate-500">
+            {entries.length === 0 
+              ? 'New signups will appear here automatically.' 
+              : `We couldn't find anything matching "${searchTerm}"`}
+          </p>
+        </div>
+      )}
+
+      {/* Data Table */}
+      {status !== 'error' && filteredEntries.length > 0 && (
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-left">
+            <thead>
+              <tr className="border-b border-slate-100 bg-slate-50/50">
+                <th className="px-8 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">User Email</th>
+                <th className="px-8 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Registration Date</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {filteredEntries.map((entry) => (
+                <tr 
+                  key={entry.id} 
+                  className="group transition-colors hover:bg-slate-50/80"
+                >
+                  <td className="whitespace-nowrap px-8 py-5">
+                    <span className="font-semibold text-slate-900">{entry.email}</span>
+                  </td>
+                  <td className="px-8 py-5">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-slate-700">{entry.createdAtLabel}</span>
+                      <span className="text-[11px] text-slate-400">
+                        {entry.submittedAt ?? 'Live from Firestore'}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </main>
+    
+    <footer className="mt-8 text-center text-xs text-slate-400 print:hidden">
+      Securely connected to Firebase Production Instance
+    </footer>
+  </div>
+</div>
+  );
+
+}
+
 function NavBar() {
   return (
     <nav className="relative z-20 w-full bg-white border-b border-zinc-100">
@@ -70,7 +443,7 @@ function NavBar() {
           transition={{ duration: 1 }}
           className="flex items-center"
         >
-          <img src="/logo.png" alt="Bitlance Logo" className="h-10 w-auto object-contain [image-rendering:high-quality]" />
+          <img src="logo.png" alt="Bitlance Logo" className="h-10 w-auto object-contain [image-rendering:high-quality]" />
         </motion.div>
       </div>
     </nav>
@@ -97,7 +470,9 @@ function Hero() {
 function EmailCapture() {
   const [email, setEmail] = useState('');
   const [touched, setTouched] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [successVariant, setSuccessVariant] = useState<'joined' | 'existing'>('joined');
+  const [feedback, setFeedback] = useState('');
 
   const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const showError = touched && email.length > 0 && !isValidEmail(email);
@@ -106,34 +481,40 @@ function EmailCapture() {
     e.preventDefault();
     setTouched(true);
     if (!email || !isValidEmail(email)) return;
+
+    const normalizedEmail = email.trim().toLowerCase();
+
     setStatus('loading');
-    
-    const scriptUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
-    
-    if (!scriptUrl) {
-      console.error("Missing VITE_GOOGLE_SCRIPT_URL in .env");
-      alert("Please configure the VITE_GOOGLE_SCRIPT_URL in your environment variables to enable email collection.");
-      setStatus('idle');
-      return;
-    }
+    setFeedback('');
 
     try {
-      await fetch(scriptUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'text/plain',
-        },
-        body: JSON.stringify({ email: email })
+      const waitlistRef = collection(db, 'waitlist');
+      const existingQuery = query(waitlistRef, where('email', '==', normalizedEmail), limit(1));
+      const existingSnapshot = await getDocs(existingQuery);
+
+      if (!existingSnapshot.empty) {
+        setSuccessVariant('existing');
+        setStatus('success');
+        setEmail('');
+        setTouched(false);
+        return;
+      }
+
+      await addDoc(waitlistRef, {
+        email: normalizedEmail,
+        createdAt: serverTimestamp(),
+        source: 'website-waitlist',
+        submittedAt: new Date().toISOString(),
       });
-      // no-cors mode returns an opaque response, so we assume success if no exception is thrown
+
+      setSuccessVariant('joined');
       setStatus('success');
       setEmail('');
       setTouched(false);
     } catch (error) {
-      console.error("Failed to submit:", error);
-      alert("Something went wrong. Please try again later.");
-      setStatus('idle');
+      console.error('Failed to submit to Firestore:', error);
+      setFeedback('We could not save your email right now. Please try again in a moment.');
+      setStatus('error');
     }
   };
 
@@ -168,9 +549,13 @@ function EmailCapture() {
               <CheckCircle2 className="w-8 h-8 text-orange-500 drop-shadow-[0_0_12px_rgba(249,115,22,0.6)]" strokeWidth={2.5} />
             </motion.div>
             
-            <h3 className="text-xl font-bold mb-2 text-white tracking-tight">Position Secured</h3>
+            <h3 className="text-xl font-bold mb-2 text-white tracking-tight">
+              {successVariant === 'existing' ? 'Already on the List' : 'Position Secured'}
+            </h3>
             <p className="text-zinc-400 text-sm md:text-base leading-relaxed px-4">
-              You're officially on the waitlist. We'll be in touch as soon as early access opens.
+              {successVariant === 'existing'
+                ? "This email is already on the waitlist. We'll be in touch as soon as early access opens."
+                : "You're officially on the waitlist. We'll be in touch as soon as early access opens."}
             </p>
           </motion.div>
         ) : (
@@ -195,6 +580,7 @@ function EmailCapture() {
                 onChange={(e) => {
                   setEmail(e.target.value);
                   if (status !== 'idle') setStatus('idle');
+                  if (feedback) setFeedback('');
                 }}
                 onBlur={() => setTouched(true)}
                 disabled={status === 'loading'}
@@ -223,6 +609,16 @@ function EmailCapture() {
                     className="text-sm font-medium text-red-400 text-center drop-shadow-sm"
                   >
                     Please enter a valid email address
+                  </motion.p>
+                ) : status === 'error' && feedback ? (
+                  <motion.p
+                    key="submit-error"
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    className="text-sm font-medium text-red-400 text-center drop-shadow-sm"
+                  >
+                    {feedback}
                   </motion.p>
                 ) : (
                   <motion.p
