@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth';
 import { collection, addDoc, getDocs, limit, onSnapshot, orderBy, query, serverTimestamp, where } from 'firebase/firestore';
-import { Zap, Globe2, ShieldCheck, CheckCircle2, RefreshCw, Mail, Search, Inbox, FileSpreadsheet, FileDown } from 'lucide-react';
-import { db } from './firebase';
+import { Zap, Globe2, ShieldCheck, CheckCircle2, RefreshCw, Search, Inbox, FileSpreadsheet, FileDown, LockKeyhole, LogOut } from 'lucide-react';
+import { auth, db } from './firebase';
 
 // Reusable elegant fade-in wrapper
 const FadeIn = ({ children, delay = 0, className = "" }: { children: React.ReactNode, delay?: number, className?: string }) => (
@@ -75,7 +76,101 @@ type WaitlistEntry = {
   submittedAt: string | null;
 };
 
+function AdminLoginPage({ onSignedIn }: { onSignedIn: () => void }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    setStatus('loading');
+    setErrorMessage('');
+
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+      onSignedIn();
+    } catch (error) {
+      console.error('Admin login failed:', error);
+      setStatus('error');
+      setErrorMessage('That email or password did not work. Please check the admin credentials and try again.');
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#fafafa] px-6 font-sans text-slate-900">
+      <main className="w-full max-w-md rounded-[2rem] border border-slate-200 bg-white p-8 shadow-xl shadow-slate-200/60">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white">
+            <LockKeyhole className="h-6 w-6" />
+          </div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-600">Admin Access</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">Sign in</h1>
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            Use your Firebase admin account to view the Bitlance waitlist.
+          </p>
+        </div>
+
+        <form onSubmit={handleLogin} className="space-y-4">
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-slate-700">Email</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
+              required
+              disabled={status === 'loading'}
+              className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:opacity-70"
+              placeholder="admin@example.com"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-slate-700">Password</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="current-password"
+              required
+              disabled={status === 'loading'}
+              className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:opacity-70"
+              placeholder="Enter password"
+            />
+          </label>
+
+          {status === 'error' ? (
+            <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium leading-6 text-red-600">
+              {errorMessage}
+            </p>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={status === 'loading'}
+            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white shadow-lg shadow-slate-200 transition-all hover:bg-slate-800 active:scale-[0.98] disabled:opacity-70"
+          >
+            {status === 'loading' ? (
+              <>
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                Signing in
+              </>
+            ) : (
+              'Continue'
+            )}
+          </button>
+        </form>
+      </main>
+    </div>
+  );
+}
+
 function WaitlistAdminPage() {
+  const [adminUser, setAdminUser] = useState<User | null>(null);
+  const [authStatus, setAuthStatus] = useState<'checking' | 'signed-in' | 'signed-out'>('checking');
+  const [hasUnlockedAdmin, setHasUnlockedAdmin] = useState(false);
   const [entries, setEntries] = useState<WaitlistEntry[]>([]);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [searchTerm, setSearchTerm] = useState('');
@@ -83,6 +178,21 @@ function WaitlistAdminPage() {
   const [lastUpdated, setLastUpdated] = useState('');
 
   useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setAdminUser(user);
+      setAuthStatus(user ? 'signed-in' : 'signed-out');
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!adminUser || !hasUnlockedAdmin) {
+      setEntries([]);
+      setStatus('loading');
+      return;
+    }
+
     const waitlistRef = collection(db, 'waitlist');
     const waitlistQuery = query(waitlistRef, orderBy('createdAt', 'desc'));
 
@@ -124,7 +234,7 @@ function WaitlistAdminPage() {
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [adminUser, hasUnlockedAdmin]);
 
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const filteredEntries = entries.filter((entry) => {
@@ -160,6 +270,19 @@ function WaitlistAdminPage() {
   const exportPdf = () => {
     window.print();
   };
+
+  if (authStatus === 'checking') {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#fafafa] text-slate-600">
+        <RefreshCw className="mr-3 h-5 w-5 animate-spin text-indigo-600" />
+        Checking admin access...
+      </div>
+    );
+  }
+
+  if (!adminUser || !hasUnlockedAdmin) {
+    return <AdminLoginPage onSignedIn={() => setHasUnlockedAdmin(true)} />;
+  }
 
   return (
     // <div className="min-h-screen bg-zinc-50 text-zinc-950 print:bg-white">
@@ -310,6 +433,16 @@ function WaitlistAdminPage() {
       </div>
 
       <div className="flex items-center gap-3 print:hidden">
+        <button
+          onClick={() => {
+            setHasUnlockedAdmin(false);
+            signOut(auth);
+          }}
+          className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:text-slate-900 active:scale-95"
+        >
+          <LogOut className="h-4 w-4" />
+          Sign out
+        </button>
         <button
           onClick={exportCsv}
           disabled={filteredEntries.length === 0}
