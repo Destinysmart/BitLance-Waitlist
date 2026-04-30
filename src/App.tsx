@@ -17,6 +17,9 @@ const FadeIn = ({ children, delay = 0, className = "" }: { children: React.React
   </motion.div>
 );
 
+const LAUNCH_DATE_MS = new Date('2026-05-30T00:00:00+01:00').getTime();
+const getLaunchTimeLeft = () => Math.max(0, Math.floor((LAUNCH_DATE_MS - Date.now()) / 1000));
+
 export default function App() {
   const pathname = typeof window !== 'undefined' ? window.location.pathname.replace(/\/+$/, '') || '/' : '/';
 
@@ -569,7 +572,7 @@ function WaitlistAdminPage() {
 function NavBar() {
   return (
     <nav className="relative z-20 w-full bg-white border-b border-zinc-100">
-      <div className="px-6 py-5 max-w-5xl mx-auto flex items-center justify-between">
+      <div className="px-6 py-5 max-w-[90%y] mx-auto flex items-center justify-between">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -823,12 +826,15 @@ function Benefits() {
 }
 
 function FinalCTA() {
-  const [timeLeft, setTimeLeft] = useState(30 * 24 * 60 * 60);
+  const [timeLeft, setTimeLeft] = useState(getLaunchTimeLeft);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+      setTimeLeft(getLaunchTimeLeft());
     }, 1000);
+
+    setTimeLeft(getLaunchTimeLeft());
+
     return () => clearInterval(timer);
   }, []);
 
