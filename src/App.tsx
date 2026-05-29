@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth';
 import { collection, addDoc, getDocs, limit, onSnapshot, orderBy, query, serverTimestamp, where } from 'firebase/firestore';
 import { Zap, Globe2, ShieldCheck, CheckCircle2, RefreshCw, Search, Inbox, FileSpreadsheet, FileDown, LockKeyhole, LogOut } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 import { auth, db } from './firebase';
 
 // Reusable elegant fade-in wrapper
@@ -68,6 +69,7 @@ export default function App() {
       </main>
 
       <Footer />
+      <Analytics />
     </div>
   );
 }
@@ -166,6 +168,7 @@ function AdminLoginPage({ onSignedIn }: { onSignedIn: () => void }) {
           </button>
         </form>
       </main>
+      <Analytics />
     </div>
   );
 }
@@ -564,6 +567,7 @@ function WaitlistAdminPage() {
       Securely connected to Firebase Production Instance
     </footer>
   </div>
+  <Analytics />
 </div>
   );
 
