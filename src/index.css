@@ -29,3 +29,79 @@ body {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+/* Light Theme Overrides */
+html.light-mode {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.light-mode .bg-\[\#050505\],
+.light-mode .bg-\[\#0a0a0a\] {
+  background-color: #f8fafc !important;
+}
+
+.light-mode .text-white {
+  color: #0f172a !important;
+}
+
+.light-mode .text-zinc-400 {
+  color: #334155 !important;
+}
+
+.light-mode .text-zinc-500 {
+  color: #475569 !important;
+}
+
+.light-mode .text-zinc-200,
+.light-mode .text-zinc-300,
+.light-mode .text-zinc-100 {
+  color: #0f172a !important;
+}
+
+.light-mode .bg-zinc-900,
+.light-mode .bg-zinc-950,
+.light-mode .bg-zinc-800 {
+  background-color: #ffffff !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
+}
+
+.light-mode .bg-zinc-900\/40,
+.light-mode .bg-zinc-900\/50,
+.light-mode .bg-zinc-900\/60,
+.light-mode .bg-zinc-900\/80,
+.light-mode .bg-zinc-800\/50,
+.light-mode .bg-zinc-800\/60,
+.light-mode .bg-zinc-950\/40,
+.light-mode .bg-zinc-950\/50 {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.light-mode .bg-black\/20 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.light-mode .border-zinc-800,
+.light-mode .border-zinc-900,
+.light-mode .border-zinc-700,
+.light-mode .border-zinc-800\/60,
+.light-mode .border-zinc-800\/80 {
+  border-color: #e2e8f0 !important;
+}
+
+.light-mode .border-white\/5,
+.light-mode .border-white\/10 {
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Adjust grid gradient to be darker */
+.light-mode [class*="bg-[linear-gradient"] {
+  opacity: 0.15;
+  filter: invert(1);
+}
+
+.light-mode .from-white {
+  --tw-gradient-from: #0f172a var(--tw-gradient-from-position);
+  --tw-gradient-to: rgba(15, 23, 42, 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}

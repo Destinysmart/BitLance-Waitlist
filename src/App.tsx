@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Sun, Moon } from 'lucide-react';
 
 const Benefits = lazy(() => import('./components/Benefits'));
 const FinalCTA = lazy(() => import('./components/FinalCTA'));
@@ -76,6 +76,16 @@ export default function App() {
 }
 
 function NavBar() {
+  const [isLightMode, setIsLightMode] = useState(false);
+
+  useEffect(() => {
+    if (isLightMode) {
+      document.documentElement.classList.add('light-mode');
+    } else {
+      document.documentElement.classList.remove('light-mode');
+    }
+  }, [isLightMode]);
+
   const scrollTo = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
@@ -93,7 +103,7 @@ function NavBar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 w-full border-b border-white/5 bg-[#050505]/80 backdrop-blur-xl">
+    <nav className="fixed top-0 left-0 right-0 z-50 w-full border-b border-white/5 bg-[#050505]/80 backdrop-blur-xl transition-colors duration-500">
       <div className="px-5 sm:px-6 py-4 max-w-6xl mx-auto flex items-center justify-between">
         
         {/* Logo */}
@@ -119,13 +129,20 @@ function NavBar() {
           <button onClick={() => scrollTo('faq')} className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">FAQ</button>
         </motion.div>
 
-        {/* Waitlist Button */}
+        {/* Action Buttons */}
         <motion.div
            initial={{ opacity: 0 }}
            animate={{ opacity: 1 }}
            transition={{ duration: 1, delay: 0.3 }}
-           className="flex"
+           className="flex items-center gap-3"
         >
+           <button 
+             onClick={() => setIsLightMode(!isLightMode)} 
+             className="p-2 rounded-full border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white transition-all active:scale-[0.98]"
+             aria-label="Toggle theme"
+           >
+             {isLightMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+           </button>
            <button onClick={() => scrollTo('waitlist')} className="text-sm font-medium px-5 py-2.5 rounded-full border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 hover:border-zinc-700 text-white transition-all active:scale-[0.98] shadow-sm">
              <span className="hidden sm:inline">Join Waitlist</span>
              <span className="sm:hidden">Waitlist</span>
@@ -145,8 +162,8 @@ function Hero() {
         Get Paid in <span className="text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-orange-600">Bitcoin.</span>
       </h1>
       <p className="text-base sm:text-lg md:text-xl text-zinc-400 font-light leading-relaxed max-w-xl mx-auto mb-10 px-2 drop-shadow-sm">
-        A freelancing platform built for the Bitcoin economy. <br className="hidden md:block" />
-        No banks. No borders. Just sats.
+        The simplest Bitcoin freelancing platform, <br className="hidden md:block" />
+        built to accelerate Bitcoin adoption.
       </p>
     </div>
   );
