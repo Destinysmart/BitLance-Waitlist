@@ -1,6 +1,8 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, CheckCircle2, Sun, Moon } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Sun, Moon, Rocket, ShieldCheck, Globe, Bitcoin } from 'lucide-react';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db, handleFirestoreError, OperationType } from './firebase';
 
 const Benefits = lazy(() => import('./components/Benefits'));
 const FinalCTA = lazy(() => import('./components/FinalCTA'));
@@ -27,20 +29,26 @@ export default function App() {
       <NavBar />
       
       {/* Hero Section Container */}
-      <div className="relative w-full overflow-hidden flex-shrink-0 pt-24 sm:pt-28">
+      <div className="relative w-full overflow-hidden flex-shrink-0 pt-20">
         {/* Modern Grid Background */}
         <div className="absolute inset-0 bg-[#050505] bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,#000_70%,transparent_100%)] z-0" />
         
-        {/* Core Hero Glow */}
-        <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[600px] h-[500px] bg-orange-500/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+        {/* Animated Background Mesh Glows */}
+        <div className="absolute top-0 w-full h-[800px] overflow-hidden pointer-events-none z-0">
+          <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[500px] sm:w-[600px] h-[400px] sm:h-[500px] bg-orange-500/15 rounded-full blur-[100px] animate-blob mix-blend-screen"></div>
+          <div className="absolute top-[10%] left-1/4 w-[400px] h-[400px] bg-orange-400/10 rounded-full blur-[120px] animate-blob [animation-delay:2s] mix-blend-screen opacity-70"></div>
+          <div className="absolute top-[5%] right-1/4 w-[450px] h-[450px] bg-yellow-500/10 rounded-full blur-[120px] animate-blob [animation-delay:4s] mix-blend-screen opacity-60"></div>
+        </div>
 
-        <div className="relative z-10 flex flex-col items-center pb-20 sm:pb-24 px-4 sm:px-6 w-full max-w-5xl mx-auto">
-          <FadeIn className="w-full flex flex-col items-center text-center">
+        <div className="relative z-10 w-full max-w-7xl mx-auto pb-24 sm:pb-32 px-4 sm:px-6">
+          <FadeIn className="w-full">
             <Hero />
-            <div id="waitlist" className="w-full max-w-lg mb-8">
+            
+            <div id="waitlist" className="w-full max-w-lg mx-auto mt-24 mb-8 flex flex-col items-center">
+              <h3 className="text-xl font-medium mb-6 text-white text-center">Join the Waitlist</h3>
               <EmailCapture />
+              <Positioning />
             </div>
-            <Positioning />
           </FadeIn>
         </div>
       </div>
@@ -89,7 +97,8 @@ function NavBar() {
   const scrollTo = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      const offset = 80;
+      const navBar = document.querySelector('nav');
+      const offset = navBar ? navBar.offsetHeight : 80;
       const bodyRect = document.body.getBoundingClientRect().top;
       const elementRect = element.getBoundingClientRect().top;
       const elementPosition = elementRect - bodyRect;
@@ -155,16 +164,152 @@ function NavBar() {
 }
 
 function Hero() {
+  const scrollTo = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      const navBar = document.querySelector('nav');
+      const offset = navBar ? navBar.offsetHeight : 80;
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = element.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+    }
+  };
+
   return (
-    <div className="max-w-4xl flex flex-col items-center mt-8 md:mt-12">
-      <h1 className="text-5xl sm:text-6xl md:text-8xl font-bold tracking-tight text-white leading-[1.05] mb-6 drop-shadow-sm" style={{ letterSpacing: '-0.04em' }}>
-        Work Online. <br className="hidden md:block" />
-        Get Paid in <span className="text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-orange-600">Bitcoin.</span>
-      </h1>
-      <p className="text-base sm:text-lg md:text-xl text-zinc-400 font-light leading-relaxed max-w-xl mx-auto mb-10 px-2 drop-shadow-sm">
-        The simplest Bitcoin freelancing platform, <br className="hidden md:block" />
-        built to accelerate Bitcoin adoption.
-      </p>
+    <div className="w-full flex flex-col lg:flex-row items-center gap-16 md:gap-24 relative z-10 mb-12">
+      {/* Left Column: Copy & CTA */}
+      <div className="flex-1 flex flex-col items-center lg:items-start text-center lg:text-left w-full mt-10 md:mt-16">
+        
+        <h1 className="text-5xl sm:text-6xl md:text-[5rem] font-bold tracking-tighter text-white leading-[1.05] mb-6 drop-shadow-md">
+          Get Paid in <br className="hidden sm:block" />
+          <span className="text-transparent bg-clip-text bg-gradient-to-br from-orange-400 via-orange-500 to-amber-500">Bitcoin</span>
+          {' '}for Your Work.
+        </h1>
+        
+        <p className="text-lg sm:text-xl text-zinc-400 font-light leading-relaxed max-w-xl mb-10">
+          Bitlance connects freelancers and clients worldwide through secure Bitcoin payments and escrow-backed contracts.
+        </p>
+        
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto mb-12">
+          <button onClick={() => scrollTo('waitlist')} className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-white text-black hover:bg-zinc-200 font-semibold text-sm sm:text-base transition-all active:scale-[0.98] shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+            Join Waitlist
+          </button>
+          <button onClick={() => scrollTo('progress')} className="w-full sm:w-auto px-8 py-3.5 rounded-full border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 hover:border-zinc-700 text-white font-medium text-sm sm:text-base transition-all active:scale-[0.98] shadow-sm flex items-center justify-center gap-2">
+            View Launch Progress
+            <ArrowRight className="w-4 h-4 text-zinc-500" />
+          </button>
+        </div>
+        
+        {/* Trust Elements */}
+        <div className="flex flex-col sm:flex-row flex-wrap items-center lg:items-start gap-6 text-sm font-medium text-zinc-400">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-500" />
+            <span>Secure Escrow Protection</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Globe className="w-4 h-4 text-blue-400" />
+            <span>Global Opportunities</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Bitcoin className="w-4 h-4 text-orange-500" />
+            <span>Bitcoin-Native Payments</span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Right Column: Floating Dashboard */}
+      <div className="flex-1 w-full max-w-xl lg:max-w-none relative perspective-[1200px]">
+        {/* Background glow for the dashboard */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-orange-500/10 via-transparent to-orange-400/5 rounded-[2.5rem] blur-2xl transform -rotate-3 scale-95" />
+        
+        <motion.div 
+          initial={{ opacity: 0, rotateY: 10, rotateX: 10, y: 30 }}
+          animate={{ opacity: 1, rotateY: -5, rotateX: 2, y: 0 }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          className="relative w-full aspect-square sm:aspect-[4/3] lg:aspect-[4/3] xl:aspect-[1.1] border border-zinc-800/60 bg-[#0a0a0a]/80 backdrop-blur-3xl rounded-[2rem] shadow-2xl overflow-hidden flex transform-style-3d group"
+        >
+          {/* Dashboard Header */}
+          <div className="absolute top-0 left-0 right-0 h-14 border-b border-white/5 bg-zinc-900/40 flex items-center px-6 justify-between backdrop-blur-md z-10">
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-b from-orange-400 to-orange-600 flex items-center justify-center shrink-0">
+                <Bitcoin className="w-4 h-4 text-white" />
+              </div>
+              <span className="font-semibold text-zinc-200 text-sm">Dashboard</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-zinc-700/50"></div>
+              <div className="w-3 h-3 rounded-full bg-zinc-700/50"></div>
+              <div className="w-3 h-3 rounded-full bg-zinc-700/50"></div>
+            </div>
+          </div>
+          
+          {/* Dashboard Content padding */}
+          <div className="pt-20 px-6 pb-6 w-full h-full flex flex-col gap-4">
+            
+            {/* Top Stats */}
+            <div className="flex gap-4">
+              <motion.div 
+                animate={{ y: [0, -3, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="flex-1 p-5 rounded-2xl border border-white/5 bg-zinc-900/40 shadow-inner"
+              >
+                <div className="text-zinc-500 text-xs font-medium mb-1 uppercase tracking-widest">Earnings</div>
+                <div className="text-2xl font-bold text-white flex items-baseline gap-1">
+                  0.15 <span className="text-sm font-medium text-orange-500">BTC</span>
+                </div>
+              </motion.div>
+              
+              <motion.div 
+                animate={{ y: [0, 4, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                className="flex-1 p-5 rounded-2xl border border-white/5 bg-zinc-900/40 shadow-inner"
+              >
+                <div className="text-zinc-500 text-xs font-medium mb-1 uppercase tracking-widest">Escrow Balance</div>
+                <div className="text-2xl font-bold text-white flex items-baseline gap-1">
+                  0.05 <span className="text-sm font-medium text-zinc-400">BTC</span>
+                </div>
+              </motion.div>
+            </div>
+            
+            {/* Active Contract */}
+            <motion.div 
+              animate={{ y: [0, -2, 0] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+              className="mt-2 flex-1 rounded-2xl border border-orange-500/20 bg-orange-500/5 p-6 shadow-[0_0_30px_rgba(249,115,22,0.05)] relative overflow-hidden flex flex-col"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-2xl -mt-10 -mr-10"></div>
+              
+              <div className="flex items-center justify-between mb-4 relative z-10 w-full overflow-hidden">
+                <span className="min-w-0 truncate px-2.5 py-1 rounded-md bg-orange-500/20 border border-orange-500/30 text-orange-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider">Active Contract</span>
+                <span className="shrink-0 ml-2 text-zinc-400 text-xs sm:text-sm font-medium">Due in 2 days</span>
+              </div>
+              
+              <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 relative z-10 truncate w-full">Full-Stack React App</h3>
+              <p className="text-zinc-400 text-xs sm:text-sm mb-auto relative z-10 line-clamp-2">Build a modern, high-performance web application utilizing React, Vite, and Tailwind CSS.</p>
+              
+              <div className="mt-6 w-full relative z-10">
+                <div className="w-full h-1.5 rounded-full bg-black/40 overflow-hidden relative">
+                  <div className="h-full bg-gradient-to-r from-orange-600 to-orange-400 w-[75%] rounded-full shadow-[0_0_10px_rgba(249,115,22,0.5)]"></div>
+                </div>
+                <div className="flex justify-between mt-2.5 text-xs font-medium text-zinc-500 relative">
+                  <span>Milestone 3/4</span>
+                  <span className="text-orange-400">0.05 / 0.10 BTC</span>
+                </div>
+              </div>
+            </motion.div>
+            
+          </div>
+          
+          {/* Noise texture overlay */}
+          <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
+        </motion.div>
+      </div>
     </div>
   );
 }
@@ -183,25 +328,13 @@ function EmailCapture() {
     if (!email || !isValidEmail(email)) return;
     setStatus('loading');
     
-    const scriptUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
-    
-    if (!scriptUrl) {
-      console.error("Missing VITE_GOOGLE_SCRIPT_URL in .env");
-      alert("Please configure the VITE_GOOGLE_SCRIPT_URL in your environment variables to enable email collection.");
-      setStatus('idle');
-      return;
-    }
-
     try {
-      await fetch(scriptUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'text/plain',
-        },
-        body: JSON.stringify({ email: email })
+      const waitlistRef = collection(db, 'waitlist');
+      await addDoc(waitlistRef, {
+        email: email,
+        createdAt: serverTimestamp()
       });
-      // no-cors mode returns an opaque response, so we assume success if no exception is thrown
+      
       setStatus('success');
       setEmail('');
       setTouched(false);
@@ -215,6 +348,11 @@ function EmailCapture() {
       });
     } catch (error) {
       console.error("Failed to submit:", error);
+      try {
+        handleFirestoreError(error, OperationType.CREATE, 'waitlist');
+      } catch (err) {
+        // Fire handleFirestoreError logs it internally
+      }
       alert("Something went wrong. Please try again later.");
       setStatus('idle');
     }

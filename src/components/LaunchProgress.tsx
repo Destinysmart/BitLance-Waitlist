@@ -40,7 +40,13 @@ export default function LaunchProgress() {
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full max-w-3xl mb-20 relative">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+          className="w-full max-w-3xl mb-20 relative"
+        >
           <div className="flex justify-between items-end mb-4 px-1">
             <span className="text-zinc-400 font-medium tracking-wide text-sm md:text-base uppercase">Launch Readiness</span>
             <span className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-500 font-mono tracking-tight drop-shadow-[0_0_12px_rgba(249,115,22,0.4)]">95% Complete</span>
@@ -63,7 +69,7 @@ export default function LaunchProgress() {
               />
             </motion.div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Feature Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 w-full max-w-5xl mb-16">
@@ -107,7 +113,13 @@ export default function LaunchProgress() {
         </div>
 
         {/* Bottom Statement */}
-        <div className="text-center px-6 py-10 rounded-3xl bg-zinc-950/50 border border-zinc-800/60 backdrop-blur-sm w-full max-w-3xl flex flex-col items-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
+          className="text-center px-6 py-10 rounded-3xl bg-zinc-950/50 border border-zinc-800/60 backdrop-blur-sm w-full max-w-3xl flex flex-col items-center"
+        >
           <Zap className="w-6 h-6 text-orange-500/80 mb-5" />
           <h3 className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-zinc-100 to-zinc-400 mb-4 tracking-tight leading-snug">
             Building the future of Bitcoin freelancing.
@@ -115,7 +127,7 @@ export default function LaunchProgress() {
           <p className="text-zinc-500 text-xs md:text-sm font-semibold tracking-[0.2em] uppercase">
             Stay tuned for launch.
           </p>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

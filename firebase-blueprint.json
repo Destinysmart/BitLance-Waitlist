@@ -1,0 +1,41 @@
+{
+  "entities": {
+    "WaitlistEntry": {
+      "title": "WaitlistEntry",
+      "description": "An entry in the waitlist.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      },
+      "required": ["email", "createdAt"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "An admin user.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        }
+      },
+      "required": ["email"]
+    }
+  },
+  "firestore": {
+    "/waitlist/{waitlistId}": {
+      "schema": { "$ref": "#/entities/WaitlistEntry" },
+      "description": "A collection of waitlist entries."
+    },
+    "/admins/{adminId}": {
+      "schema": { "$ref": "#/entities/Admin" },
+      "description": "A collection of admins."
+    }
+  }
+}

@@ -25,7 +25,13 @@ export default function FAQ() {
       {/* Background glow */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/5 rounded-full blur-[120px] pointer-events-none"></div>
 
-      <div className="text-center mb-16 px-6 relative z-10">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="text-center mb-16 px-6 relative z-10"
+      >
         <div className="flex justify-center mb-6">
           <div className="w-14 h-14 rounded-2xl bg-zinc-900 shadow-xl border border-zinc-800 flex items-center justify-center relative group">
             <div className="absolute inset-0 bg-orange-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity blur-md"></div>
@@ -38,11 +44,17 @@ export default function FAQ() {
         <p className="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-light">
           Everything you need to know before joining the future of Bitcoin freelancing.
         </p>
-      </div>
+      </motion.div>
 
       <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8 lg:gap-16 px-6 relative z-10">
         {/* Left Column (Sticky info panel) */}
-        <div className="lg:w-1/3">
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+          className="lg:w-1/3"
+        >
           <div className="sticky top-24 bg-zinc-900/60 backdrop-blur-xl rounded-[2rem] p-8 md:p-10 border border-zinc-800 shadow-[0_0_40px_rgba(249,115,22,0.05)] relative overflow-hidden group">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 to-orange-600"></div>
             <div className="absolute -inset-1 bg-gradient-to-b from-orange-500/10 to-transparent blur-xl pointer-events-none"></div>
@@ -59,12 +71,16 @@ export default function FAQ() {
               </button>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Right Column (FAQ accordion list) */}
         <div className="lg:w-2/3 flex flex-col gap-3">
           {faqs.map((faq, index) => (
-            <div 
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.1 * (index % 5), ease: "easeOut" }}
               key={index} 
               className={`bg-zinc-900/40 backdrop-blur-sm border transition-all duration-300 rounded-2xl overflow-hidden ${
                 openIndex === index 
@@ -101,7 +117,7 @@ export default function FAQ() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
