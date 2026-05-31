@@ -84,7 +84,7 @@ export default function App() {
 }
 
 function NavBar() {
-  const [isLightMode, setIsLightMode] = useState(false);
+  const [isLightMode, setIsLightMode] = useState(true);
 
   useEffect(() => {
     if (isLightMode) {
@@ -237,8 +237,8 @@ function Hero() {
           {/* Dashboard Header */}
           <div className="absolute top-0 left-0 right-0 h-14 border-b border-white/5 bg-zinc-900/40 flex items-center px-6 justify-between backdrop-blur-md z-10">
             <div className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-b from-orange-400 to-orange-600 flex items-center justify-center shrink-0">
-                <Bitcoin className="w-4 h-4 text-white" />
+              <div className="w-7 h-7 rounded bg-zinc-950/80 flex items-center justify-center shrink-0 overflow-hidden border border-white/10 p-1">
+                <img src="/logo.png" alt="Bitlance" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
               </div>
               <span className="font-semibold text-zinc-200 text-sm">Dashboard</span>
             </div>
