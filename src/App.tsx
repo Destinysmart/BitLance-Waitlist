@@ -261,7 +261,7 @@ function Hero() {
               >
                 <div className="text-zinc-500 text-xs font-medium mb-1 uppercase tracking-widest">Earnings</div>
                 <div className="text-2xl font-bold text-white flex items-baseline gap-1">
-                  0.15 <span className="text-sm font-medium text-orange-500">BTC</span>
+                  45,000 <span className="text-sm font-medium text-orange-500">sats</span>
                 </div>
               </motion.div>
               
@@ -272,7 +272,7 @@ function Hero() {
               >
                 <div className="text-zinc-500 text-xs font-medium mb-1 uppercase tracking-widest">Escrow Balance</div>
                 <div className="text-2xl font-bold text-white flex items-baseline gap-1">
-                  0.05 <span className="text-sm font-medium text-zinc-400">BTC</span>
+                  15,000 <span className="text-sm font-medium text-zinc-400">sats</span>
                 </div>
               </motion.div>
             </div>
@@ -299,7 +299,7 @@ function Hero() {
                 </div>
                 <div className="flex justify-between mt-2.5 text-xs font-medium text-zinc-500 relative">
                   <span>Milestone 3/4</span>
-                  <span className="text-orange-400">0.05 / 0.10 BTC</span>
+                  <span className="text-orange-400">15,000 / 30,000 sats</span>
                 </div>
               </div>
             </motion.div>
@@ -314,18 +314,55 @@ function Hero() {
   );
 }
 
+const COMMON_TYPOS: Record<string, string> = {
+  'gmial.com': 'gmail.com',
+  'gamil.com': 'gmail.com',
+  'gmaill.com': 'gmail.com',
+  'gmail.con': 'gmail.com',
+  'gmail.co': 'gmail.com',
+  'yahoot.com': 'yahoo.com',
+  'yaho.com': 'yahoo.com',
+  'yahoo.con': 'yahoo.com',
+  'hotmial.com': 'hotmail.com',
+  'hotmal.com': 'hotmail.com',
+  'oultook.com': 'outlook.com',
+  'outlok.com': 'outlook.com'
+};
+
 function EmailCapture() {
   const [email, setEmail] = useState('');
   const [touched, setTouched] = useState(false);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [suggestion, setSuggestion] = useState<string | null>(null);
 
   const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const showError = touched && email.length > 0 && !isValidEmail(email);
+  
+  useEffect(() => {
+    if (!email || !email.includes('@')) {
+      setSuggestion(null);
+      return;
+    }
+    const parts = email.split('@');
+    if (parts.length === 2 && parts[1].length > 0) {
+      const domain = parts[1].toLowerCase();
+      if (COMMON_TYPOS[domain]) {
+        setSuggestion(`${parts[0]}@${COMMON_TYPOS[domain]}`);
+      } else {
+        setSuggestion(null);
+      }
+    } else {
+      setSuggestion(null);
+    }
+  }, [email]);
+
+  const emailIsInvalid = email.length > 0 && !isValidEmail(email);
+  const hasTypo = !!suggestion;
+  const showError = touched && email.length > 0 && (emailIsInvalid || hasTypo);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setTouched(true);
-    if (!email || !isValidEmail(email)) return;
+    if (!email || !isValidEmail(email) || hasTypo) return;
     setStatus('loading');
     
     try {
@@ -443,7 +480,24 @@ function EmailCapture() {
                     exit={{ opacity: 0, y: -5 }}
                     className="text-sm font-medium text-red-400 text-center drop-shadow-sm"
                   >
-                    Please enter a valid email address
+                    {hasTypo ? (
+                      <>
+                        Did you mean{' '}
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            setEmail(suggestion!);
+                            if (status !== 'idle') setStatus('idle');
+                          }}
+                          className="underline decoration-red-400/50 hover:decoration-red-400 font-bold transition-all"
+                        >
+                          {suggestion}
+                        </button>
+                        ?
+                      </>
+                    ) : (
+                      'Please enter a valid email address'
+                    )}
                   </motion.p>
                 ) : (
                   <motion.p

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from './firebase';
+import { Download } from 'lucide-react';
 
 interface WaitlistEntry {
   id: string;
@@ -72,6 +73,27 @@ export default function Admin() {
     setEntries([]);
   };
 
+  const exportCSV = () => {
+    if (entries.length === 0) return;
+    
+    const headers = ['Email', 'Joined At'];
+    const rows = entries.map(entry => [
+      entry.email, 
+      entry.createdAt ? new Date(entry.createdAt.seconds * 1000).toLocaleString() : 'Just now'
+    ]);
+    
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+      
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `waitlist_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="min-h-screen bg-[#050505] text-white p-8 font-sans selection:bg-orange-500/30 selection:text-orange-100">
       <div className="max-w-4xl mx-auto">
@@ -134,8 +156,17 @@ export default function Admin() {
           </div>
         ) : (
           <div className="bg-zinc-900/40 border border-zinc-800 rounded-2xl overflow-hidden">
-            <div className="p-6 border-b border-zinc-800 flex justify-between items-center">
+            <div className="p-6 border-b border-zinc-800 flex flex-wrap gap-4 justify-between items-center">
               <h2 className="text-lg font-medium">Total Entries: <span className="text-orange-400 font-bold">{entries.length}</span></h2>
+              {entries.length > 0 && (
+                <button
+                  onClick={exportCSV}
+                  className="flex items-center gap-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/20 px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+                >
+                  <Download className="w-4 h-4" />
+                  Export CSV
+                </button>
+              )}
             </div>
             
             {entries.length === 0 ? (
