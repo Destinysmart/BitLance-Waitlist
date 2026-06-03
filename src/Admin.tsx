@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from './firebase';
+import { Helmet } from 'react-helmet-async';
 import { Download } from 'lucide-react';
 
 interface WaitlistEntry {
@@ -96,6 +97,10 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white p-8 font-sans selection:bg-orange-500/30 selection:text-orange-100">
+      <Helmet>
+        <title>Waitlist Admin - Bitlance</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8 border-b border-zinc-800 pb-4">
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-orange-400 to-amber-500">Waitlist Admin</h1>

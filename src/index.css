@@ -1,22 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #fafafa; /* Very light subtle gray/white for premium feel */
+  background-color: #000000;
+  color: #ededed;
 }
 
 /* Subtle animated background gradient utility */
 .bg-mesh {
   background-image: 
-    radial-gradient(at 40% 20%, hsla(28,100%,74%,0.15) 0px, transparent 50%),
-    radial-gradient(at 80% 0%, hsla(189,100%,56%,0.05) 0px, transparent 50%),
-    radial-gradient(at 0% 50%, hsla(355,100%,93%,0.1) 0px, transparent 50%);
-  filter: blur(40px);
+    radial-gradient(at 40% 20%, hsla(28,100%,74%,0.1) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, hsla(30,100%,50%,0.05) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, hsla(20,100%,40%,0.1) 0px, transparent 50%);
+  filter: blur(60px);
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -32,76 +36,68 @@ body {
 
 /* Light Theme Overrides */
 html.light-mode {
-  background-color: #f8fafc !important;
+  background-color: #FAFAFA !important;
   color: #0f172a !important;
 }
 
 .light-mode .bg-\[\#050505\],
-.light-mode .bg-\[\#050505\]\/80,
+.light-mode .bg-\[\#000000\],
 .light-mode .bg-\[\#0a0a0a\],
-.light-mode .bg-\[\#0a0a0a\]\/80 {
-  background-color: #f8fafc !important;
+.light-mode .bg-\[\#000000\]\/80,
+.light-mode .bg-\[\#050505\]\/95,
+.light-mode .bg-\[\#0a0a0a\]\/50 {
+  background-color: #FAFAFA !important;
 }
 
 .light-mode .text-white:not(.from-orange-500):not(.bg-orange-500):not(.bg-gradient-to-b) {
   color: #0f172a !important;
 }
 
-.light-mode .text-zinc-400 {
-  color: #1e293b !important;
-}
-
+.light-mode .text-zinc-400,
 .light-mode .text-zinc-500,
-.light-mode .text-zinc-600 {
-  color: #334155 !important;
-}
-
-.light-mode .text-zinc-200,
+.light-mode .text-zinc-600,
 .light-mode .text-zinc-300,
+.light-mode .text-zinc-200,
 .light-mode .text-zinc-100 {
-  color: #0f172a !important;
+  color: #334155 !important;
 }
 
 .light-mode .bg-zinc-900,
 .light-mode .bg-zinc-950,
-.light-mode .bg-zinc-800 {
-  background-color: #ffffff !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
-}
-
+.light-mode .bg-zinc-800,
+.light-mode .bg-zinc-900\/30,
 .light-mode .bg-zinc-900\/40,
 .light-mode .bg-zinc-900\/50,
 .light-mode .bg-zinc-900\/60,
 .light-mode .bg-zinc-900\/80,
+.light-mode .bg-zinc-800\/30,
 .light-mode .bg-zinc-800\/50,
 .light-mode .bg-zinc-800\/60,
+.light-mode .bg-zinc-800\/80,
 .light-mode .bg-zinc-950\/40,
-.light-mode .bg-zinc-950\/50 {
-  background-color: rgba(255, 255, 255, 0.7) !important;
-}
-
-.light-mode .bg-black\/20 {
-  background-color: rgba(255, 255, 255, 0.8) !important;
+.light-mode .bg-zinc-950\/50,
+.light-mode .bg-zinc-950\/80 {
+  background-color: #ffffff !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+  border-color: #e2e8f0 !important;
 }
 
 .light-mode .border-zinc-800,
 .light-mode .border-zinc-900,
 .light-mode .border-zinc-700,
+.light-mode .border-zinc-700\/50,
 .light-mode .border-zinc-800\/60,
 .light-mode .border-zinc-800\/80,
-.light-mode .border-zinc-900\/80 {
+.light-mode .border-zinc-900\/60,
+.light-mode .border-zinc-900\/80,
+.light-mode .border-white\/5,
+.light-mode .border-white\/10 {
   border-color: #e2e8f0 !important;
 }
 
-.light-mode .border-white\/5,
-.light-mode .border-white\/10 {
-  border-color: rgba(0, 0, 0, 0.06) !important;
-}
-
-/* Adjust grid gradient to be darker */
 .light-mode [class*="bg-[linear-gradient"] {
-  opacity: 0.15;
-  filter: invert(1);
+  opacity: 0.15 !important;
+  filter: invert(1) !important;
 }
 
 .light-mode .text-transparent.bg-gradient-to-b.from-white.to-zinc-500 {
@@ -131,12 +127,18 @@ html.light-mode {
   animation: blob 15s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.animation-delay-[2000ms] {
-  animation-delay: 2s;
+.mask-edges {
+  mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
 }
 
-.animation-delay-[4000ms] {
-  animation-delay: 4s;
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-scroll-left {
+  animation: scroll-left 50s linear infinite;
 }
 
 .perspective-\[1200px\] {
@@ -146,4 +148,10 @@ html.light-mode {
 .transform-style-3d {
   transform-style: preserve-3d;
 }
+
+/* Base custom tweet styles */
+.react-tweet-theme {
+  --tweet-body-font: var(--font-sans) !important;
+}
+
 

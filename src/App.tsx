@@ -1,5 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Helmet } from 'react-helmet-async';
 import { ArrowRight, CheckCircle2, Sun, Moon, Rocket, ShieldCheck, Globe, Bitcoin } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from './firebase';
@@ -9,6 +10,7 @@ const FinalCTA = lazy(() => import('./components/FinalCTA'));
 const LaunchProgress = lazy(() => import('./components/LaunchProgress'));
 const FAQ = lazy(() => import('./components/FAQ'));
 const Footer = lazy(() => import('./components/Footer'));
+const Testimonials = lazy(() => import('./components/Testimonials'));
 
 // Reusable elegant fade-in wrapper
 const FadeIn = ({ children, delay = 0, className = "", id }: { children: React.ReactNode, delay?: number, className?: string, id?: string }) => (
@@ -25,30 +27,45 @@ const FadeIn = ({ children, delay = 0, className = "", id }: { children: React.R
 
 export default function App() {
   return (
-    <div className="relative min-h-screen font-sans selection:bg-orange-500/30 selection:text-orange-100 flex flex-col bg-[#050505] text-zinc-200">
+    <div className="relative min-h-screen font-sans selection:bg-orange-500/30 selection:text-orange-100 flex flex-col bg-[#000000] text-zinc-200">
+      <Helmet>
+        <title>Bitlance - Bitcoin Freelance Marketplace</title>
+        <meta name="title" content="Bitlance - Bitcoin Freelance Marketplace" />
+        <meta name="description" content="The world's first truly borderless freelancer economy. Build, work, and get paid in Bitcoin without banks or delays. Join the waitlist for mainnet launch." />
+        <meta name="keywords" content="bitcoin freelance, crypto freelance, pay in bitcoin, earn bitcoin, borderless work, lightning network jobs, web3 marketplace, bitlance" />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://bitlance.work/" />
+        <meta property="og:title" content="Bitlance - Bitcoin Freelance Marketplace" />
+        <meta property="og:description" content="The world's first truly borderless freelancer economy. Build, work, and get paid in Bitcoin without banks or delays." />
+        <meta property="og:image" content="https://bitlance.work/og-image.jpg" />
+
+        {/* Twitter */}
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://bitlance.work/" />
+        <meta property="twitter:title" content="Bitlance - Bitcoin Freelance Marketplace" />
+        <meta property="twitter:description" content="The world's first truly borderless freelancer economy. Build, work, and get paid in Bitcoin without banks or delays." />
+        <meta property="twitter:image" content="https://bitlance.work/og-image.jpg" />
+      </Helmet>
+      
       <NavBar />
       
       {/* Hero Section Container */}
-      <div className="relative w-full overflow-hidden flex-shrink-0 pt-20">
+      <div className="relative w-full overflow-hidden flex-shrink-0 pt-24 md:pt-32">
         {/* Modern Grid Background */}
-        <div className="absolute inset-0 bg-[#050505] bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,#000_70%,transparent_100%)] z-0" />
+        <div className="absolute inset-0 bg-[#000000] bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,#000_70%,transparent_100%)] z-0" />
         
         {/* Animated Background Mesh Glows */}
         <div className="absolute top-0 w-full h-[800px] overflow-hidden pointer-events-none z-0">
-          <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[500px] sm:w-[600px] h-[400px] sm:h-[500px] bg-orange-500/15 rounded-full blur-[100px] animate-blob mix-blend-screen"></div>
+          <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[500px] sm:w-[800px] h-[400px] sm:h-[600px] bg-orange-600/10 rounded-full blur-[120px] animate-blob mix-blend-screen"></div>
           <div className="absolute top-[10%] left-1/4 w-[400px] h-[400px] bg-orange-400/10 rounded-full blur-[120px] animate-blob [animation-delay:2s] mix-blend-screen opacity-70"></div>
-          <div className="absolute top-[5%] right-1/4 w-[450px] h-[450px] bg-yellow-500/10 rounded-full blur-[120px] animate-blob [animation-delay:4s] mix-blend-screen opacity-60"></div>
+          <div className="absolute top-[5%] right-1/4 w-[450px] h-[450px] bg-amber-500/10 rounded-full blur-[120px] animate-blob [animation-delay:4s] mix-blend-screen opacity-60"></div>
         </div>
 
         <div className="relative z-10 w-full max-w-7xl mx-auto pb-24 sm:pb-32 px-4 sm:px-6">
           <FadeIn className="w-full">
             <Hero />
-            
-            <div id="waitlist" className="w-full max-w-lg mx-auto mt-24 mb-8 flex flex-col items-center">
-              <h3 className="text-xl font-medium mb-6 text-white text-center">Join the Waitlist</h3>
-              <EmailCapture />
-              <Positioning />
-            </div>
           </FadeIn>
         </div>
       </div>
@@ -61,6 +78,10 @@ export default function App() {
           </FadeIn>
           
           <div className="w-full max-w-2xl h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-16 sm:my-20"></div>
+
+          <FadeIn delay={0.3} className="w-full mb-16 sm:mb-20" id="testimonials">
+            <Testimonials />
+          </FadeIn>
 
           <FadeIn delay={0.4} className="w-full mb-16 sm:mb-20" id="countdown">
             <FinalCTA />
@@ -112,7 +133,7 @@ function NavBar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 w-full border-b border-white/5 bg-[#050505]/80 backdrop-blur-xl transition-colors duration-500">
+    <nav className="fixed top-0 left-0 right-0 z-50 w-full border-b border-white/5 bg-[#000000]/80 backdrop-blur-xl transition-colors duration-500">
       <div className="px-5 sm:px-6 py-4 max-w-6xl mx-auto flex items-center justify-between">
         
         {/* Logo */}
@@ -182,41 +203,37 @@ function Hero() {
   };
 
   return (
-    <div className="w-full flex flex-col lg:flex-row items-center gap-16 md:gap-24 relative z-10 mb-12">
+    <div className="w-full flex flex-col xl:flex-row items-center gap-16 xl:gap-20 relative z-10 mb-12">
       {/* Left Column: Copy & CTA */}
-      <div className="flex-1 flex flex-col items-center lg:items-start text-center lg:text-left w-full mt-10 md:mt-16">
+      <div className="flex-1 flex flex-col items-center xl:items-start text-center xl:text-left w-full mt-10 md:mt-16">
         
-        <h1 className="text-5xl sm:text-6xl md:text-[5rem] font-bold tracking-tighter text-white leading-[1.05] mb-6 drop-shadow-md">
+        <h1 className="text-5xl sm:text-6xl md:text-[5.5rem] font-display font-extrabold tracking-tighter text-white leading-[1.05] mb-6 drop-shadow-md">
           Get Paid in <br className="hidden sm:block" />
           <span className="text-transparent bg-clip-text bg-gradient-to-br from-orange-400 via-orange-500 to-amber-500">Bitcoin</span>
           {' '}for Your Work.
         </h1>
         
-        <p className="text-lg sm:text-xl text-zinc-400 font-light leading-relaxed max-w-xl mb-10">
-          Bitlance connects freelancers and clients worldwide through secure Bitcoin payments and escrow-backed contracts.
+        <p className="text-lg sm:text-xl md:text-2xl text-zinc-400 font-light leading-relaxed max-w-2xl mb-10">
+          Bitlance connects freelancers and clients worldwide through secure Lightning payments and escrow-backed contracts.
         </p>
-        
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto mb-12">
-          <button onClick={() => scrollTo('waitlist')} className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-white text-black hover:bg-zinc-200 font-semibold text-sm sm:text-base transition-all active:scale-[0.98] shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]">
-            Join Waitlist
-          </button>
-          <button onClick={() => scrollTo('progress')} className="w-full sm:w-auto px-8 py-3.5 rounded-full border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 hover:border-zinc-700 text-white font-medium text-sm sm:text-base transition-all active:scale-[0.98] shadow-sm flex items-center justify-center gap-2">
-            View Launch Progress
-            <ArrowRight className="w-4 h-4 text-zinc-500" />
-          </button>
+
+        {/* Email Capture explicitly inside Hero now */}
+        <div className="w-full max-w-md xl:max-w-none flex flex-col items-center xl:items-start mb-12" id="waitlist">
+           <EmailCapture />
+           <Positioning />
         </div>
         
         {/* Trust Elements */}
-        <div className="flex flex-col sm:flex-row flex-wrap items-center lg:items-start gap-6 text-sm font-medium text-zinc-400">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row flex-wrap items-center xl:items-start gap-6 text-sm font-medium text-zinc-400">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-800/60 bg-zinc-900/30 backdrop-blur-sm">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
             <span>Secure Escrow Protection</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-800/60 bg-zinc-900/30 backdrop-blur-sm">
             <Globe className="w-4 h-4 text-blue-400" />
             <span>Global Opportunities</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-800/60 bg-zinc-900/30 backdrop-blur-sm">
             <Bitcoin className="w-4 h-4 text-orange-500" />
             <span>Bitcoin-Native Payments</span>
           </div>
@@ -224,15 +241,15 @@ function Hero() {
       </div>
       
       {/* Right Column: Floating Dashboard */}
-      <div className="flex-1 w-full max-w-xl lg:max-w-none relative perspective-[1200px]">
+      <div className="flex-1 w-full max-w-2xl xl:max-w-none relative perspective-[1200px] mt-10 xl:mt-0 xl:pl-10">
         {/* Background glow for the dashboard */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-orange-500/10 via-transparent to-orange-400/5 rounded-[2.5rem] blur-2xl transform -rotate-3 scale-95" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-orange-500/20 via-transparent to-amber-400/10 rounded-[2.5rem] blur-[80px] transform -rotate-6 scale-95" />
         
         <motion.div 
           initial={{ opacity: 0, rotateY: 10, rotateX: 10, y: 30 }}
           animate={{ opacity: 1, rotateY: -5, rotateX: 2, y: 0 }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className="relative w-full aspect-square sm:aspect-[4/3] lg:aspect-[4/3] xl:aspect-[1.1] border border-zinc-800/60 bg-[#0a0a0a]/80 backdrop-blur-3xl rounded-[2rem] shadow-2xl overflow-hidden flex transform-style-3d group"
+          className="relative w-full aspect-square sm:aspect-[4/3] lg:aspect-[4/3] xl:aspect-[1.1] border border-zinc-700/50 bg-[#050505]/95 backdrop-blur-3xl rounded-[2rem] shadow-[0_0_80px_rgba(249,115,22,0.15)] overflow-hidden flex transform-style-3d group"
         >
           {/* Dashboard Header */}
           <div className="absolute top-0 left-0 right-0 h-14 border-b border-white/5 bg-zinc-900/40 flex items-center px-6 justify-between backdrop-blur-md z-10">
@@ -257,22 +274,26 @@ function Hero() {
               <motion.div 
                 animate={{ y: [0, -3, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="flex-1 p-5 rounded-2xl border border-white/5 bg-zinc-900/40 shadow-inner"
+                className="flex-1 p-5 rounded-2xl border border-white/5 bg-zinc-900/40 shadow-inner backdrop-blur-md"
               >
-                <div className="text-zinc-500 text-xs font-medium mb-1 uppercase tracking-widest">Earnings</div>
-                <div className="text-2xl font-bold text-white flex items-baseline gap-1">
-                  45,000 <span className="text-sm font-medium text-orange-500">sats</span>
+                <div className="text-zinc-500 text-xs font-semibold mb-1 uppercase tracking-widest flex items-center justify-between">
+                  Earnings <Bitcoin className="w-3.5 h-3.5 text-zinc-600" />
+                </div>
+                <div className="text-2xl font-bold text-white flex items-baseline gap-1 font-mono tracking-tight mt-1">
+                  45,000 <span className="text-sm font-medium text-orange-500 font-sans tracking-normal">sats</span>
                 </div>
               </motion.div>
               
               <motion.div 
                 animate={{ y: [0, 4, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="flex-1 p-5 rounded-2xl border border-white/5 bg-zinc-900/40 shadow-inner"
+                className="flex-1 p-5 rounded-2xl border border-white/5 bg-zinc-900/40 shadow-inner backdrop-blur-md"
               >
-                <div className="text-zinc-500 text-xs font-medium mb-1 uppercase tracking-widest">Escrow Balance</div>
-                <div className="text-2xl font-bold text-white flex items-baseline gap-1">
-                  15,000 <span className="text-sm font-medium text-zinc-400">sats</span>
+                <div className="text-zinc-500 text-xs font-semibold mb-1 uppercase tracking-widest flex items-center justify-between">
+                  Escrow <ShieldCheck className="w-3.5 h-3.5 text-zinc-600" />
+                </div>
+                <div className="text-2xl font-bold text-white flex items-baseline gap-1 font-mono tracking-tight mt-1">
+                  15,000 <span className="text-sm font-medium text-zinc-400 font-sans tracking-normal">sats</span>
                 </div>
               </motion.div>
             </div>
@@ -396,7 +417,7 @@ function EmailCapture() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto mb-16">
+    <div className="w-full xl:max-w-md xl:mr-auto mb-6">
       <AnimatePresence mode="wait">
         {status === 'success' ? (
           <motion.div
@@ -466,11 +487,11 @@ function EmailCapture() {
                 {status === 'loading' ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
-                  <span>Join Waitlist</span>
+                  <span>Request Info</span>
                 )}
               </button>
             </div>
-            <div className="h-6 mt-4 flex justify-center items-center">
+            <div className="h-6 mt-4 flex xl:justify-start items-center w-full">
               <AnimatePresence mode="wait">
                 {showError ? (
                   <motion.p
@@ -521,9 +542,9 @@ function EmailCapture() {
 
 function Positioning() {
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-4 text-sm font-medium text-zinc-400 mt-4">
+    <div className="flex flex-col sm:flex-row items-center xl:justify-start gap-4 text-sm font-medium text-zinc-400 mt-2">
       <span className="uppercase tracking-widest text-[10px] sm:text-xs opacity-70">Built for</span>
-      <div className="flex flex-wrap justify-center items-center gap-3">
+      <div className="flex flex-wrap justify-center xl:justify-start items-center gap-3">
         <span className="bg-zinc-900/50 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/5 text-zinc-300 font-medium hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white hover:-translate-y-0.5 transition-all cursor-default text-xs sm:text-sm">Bitcoin builders</span>
         <span className="bg-zinc-900/50 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/5 text-zinc-300 font-medium hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white hover:-translate-y-0.5 transition-all cursor-default text-xs sm:text-sm">Remote freelancers</span>
         <span className="bg-zinc-900/50 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/5 text-zinc-300 font-medium hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white hover:-translate-y-0.5 transition-all cursor-default text-xs sm:text-sm">Global talent</span>
