@@ -82,21 +82,21 @@ export default function FAQ() {
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: 0.1 * (index % 5), ease: "easeOut" }}
               key={index} 
-              className={`bg-zinc-900/40 backdrop-blur-sm border transition-all duration-300 rounded-2xl overflow-hidden ${
+              className={`bg-zinc-900/40 backdrop-blur-sm border transition-all duration-300 rounded-2xl overflow-hidden group ${
                 openIndex === index 
                   ? 'border-orange-500/50 bg-orange-500/5 shadow-[0_0_30px_rgba(249,115,22,0.08)]' 
-                  : 'border-zinc-800/80 hover:border-zinc-700 hover:bg-zinc-900/80 cursor-pointer'
+                  : 'border-zinc-800/80 hover:border-zinc-700/80 hover:bg-zinc-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-orange-500/5 cursor-pointer'
               }`}
             >
               <button
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
                 className="w-full flex items-center justify-between p-6 md:p-8 text-left focus:outline-none"
               >
-                <span className={`text-base md:text-lg font-semibold tracking-wide pr-8 transition-colors duration-300 ${openIndex === index ? 'text-white' : 'text-zinc-300'}`}>
+                <span className={`text-base md:text-lg font-semibold tracking-wide pr-8 transition-colors duration-300 ${openIndex === index ? 'text-white' : 'text-zinc-300 group-hover:text-zinc-100'}`}>
                   {faq.q}
                 </span>
                 <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
-                  openIndex === index ? 'bg-orange-500 text-white' : 'bg-zinc-800 text-zinc-400'
+                  openIndex === index ? 'bg-orange-500 text-white' : 'bg-zinc-800/80 text-zinc-400 group-hover:bg-zinc-700 group-hover:text-zinc-300'
                 }`}>
                   <ChevronDown strokeWidth={2.5} className={`w-4 h-4 transition-transform duration-300 ${openIndex === index ? 'rotate-180' : ''}`} />
                 </div>

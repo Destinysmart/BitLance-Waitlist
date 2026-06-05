@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useScroll, useSpring } from 'motion/react';
 import { Helmet } from 'react-helmet-async';
 import { ArrowRight, CheckCircle2, Sun, Moon, Rocket, ShieldCheck, Globe, Bitcoin } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -26,27 +26,39 @@ const FadeIn = ({ children, delay = 0, className = "", id }: { children: React.R
 );
 
 export default function App() {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
   return (
-    <div className="relative min-h-screen font-sans selection:bg-orange-500/30 selection:text-orange-100 flex flex-col bg-[#000000] text-zinc-200">
+    <div className="relative min-h-screen overflow-x-hidden font-sans selection:bg-orange-500/30 selection:text-orange-100 flex flex-col bg-[#000000] text-zinc-200">
+      <motion.div
+        className="fixed top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-orange-400 to-amber-500 origin-left z-[100] shadow-[0_0_10px_rgba(249,115,22,0.5)]"
+        style={{ scaleX }}
+      />
       <Helmet>
-        <title>Bitlance - Bitcoin Freelance Marketplace</title>
-        <meta name="title" content="Bitlance - Bitcoin Freelance Marketplace" />
-        <meta name="description" content="The world's first truly borderless freelancer economy. Build, work, and get paid in Bitcoin without banks or delays. Join the waitlist for mainnet launch." />
-        <meta name="keywords" content="bitcoin freelance, crypto freelance, pay in bitcoin, earn bitcoin, borderless work, lightning network jobs, web3 marketplace, bitlance" />
+        <title>Bitlance - The Premier Bitcoin Freelance Marketplace | Earn Crypto</title>
+        <meta name="title" content="Bitlance - The Premier Bitcoin Freelance Marketplace | Earn Crypto" />
+        <meta name="description" content="Bitlance is the world's first borderless Bitcoin freelance marketplace. Hire top talent, work globally, and get paid instantly in Bitcoin (Lightning) without bank delays or high fees." />
+        <meta name="keywords" content="bitcoin freelance, btc freelance marketplace, crypto freelance jobs, pay in bitcoin, earn bitcoin, borderless work, lightning network jobs, web3 marketplace, bitlance, hire freelancers with crypto" />
+        <link rel="canonical" href="https://bitlance.work/" />
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://bitlance.work/" />
-        <meta property="og:title" content="Bitlance - Bitcoin Freelance Marketplace" />
-        <meta property="og:description" content="The world's first truly borderless freelancer economy. Build, work, and get paid in Bitcoin without banks or delays." />
-        <meta property="og:image" content="https://bitlance.work/og-image.jpg" />
+        <meta property="og:title" content="Bitlance - The Premier Bitcoin Freelance Marketplace | Earn Crypto" />
+        <meta property="og:description" content="Bitlance is the world's first borderless Bitcoin freelance marketplace. Hire top talent, work globally, and get paid instantly in Bitcoin (Lightning) without bank delays or high fees." />
+        <meta property="og:image" content="https://bitlance.work/og-dashboard.png" />
 
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content="https://bitlance.work/" />
-        <meta property="twitter:title" content="Bitlance - Bitcoin Freelance Marketplace" />
-        <meta property="twitter:description" content="The world's first truly borderless freelancer economy. Build, work, and get paid in Bitcoin without banks or delays." />
-        <meta property="twitter:image" content="https://bitlance.work/og-image.jpg" />
+        <meta property="twitter:title" content="Bitlance - The Premier Bitcoin Freelance Marketplace | Earn Crypto" />
+        <meta property="twitter:description" content="Bitlance is the world's first borderless Bitcoin freelance marketplace. Hire top talent, work globally, and get paid instantly in Bitcoin (Lightning) without bank delays or high fees." />
+        <meta property="twitter:image" content="https://bitlance.work/og-dashboard.png" />
       </Helmet>
       
       <NavBar />
@@ -203,9 +215,9 @@ function Hero() {
   };
 
   return (
-    <div className="w-full flex flex-col xl:flex-row items-center gap-16 xl:gap-20 relative z-10 mb-12">
+    <div className="w-full flex flex-col lg:flex-row items-center gap-12 lg:gap-16 relative z-10 mb-12">
       {/* Left Column: Copy & CTA */}
-      <div className="flex-1 flex flex-col items-center xl:items-start text-center xl:text-left w-full mt-10 md:mt-16">
+      <div className="flex-1 flex flex-col items-center lg:items-start text-center lg:text-left w-full mt-10 md:mt-16">
         
         <h1 className="text-5xl sm:text-6xl md:text-[5.5rem] font-display font-extrabold tracking-tighter text-white leading-[1.05] mb-6 drop-shadow-md">
           Get Paid in <br className="hidden sm:block" />
@@ -218,13 +230,13 @@ function Hero() {
         </p>
 
         {/* Email Capture explicitly inside Hero now */}
-        <div className="w-full max-w-md xl:max-w-none flex flex-col items-center xl:items-start mb-12" id="waitlist">
+        <div className="w-full max-w-md lg:max-w-none flex flex-col items-center lg:items-start mb-12" id="waitlist">
            <EmailCapture />
            <Positioning />
         </div>
         
         {/* Trust Elements */}
-        <div className="flex flex-col sm:flex-row flex-wrap items-center xl:items-start gap-6 text-sm font-medium text-zinc-400">
+        <div className="flex flex-col sm:flex-row flex-wrap items-center lg:items-start gap-4 sm:gap-6 text-sm font-medium text-zinc-400">
           <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-800/60 bg-zinc-900/30 backdrop-blur-sm">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
             <span>Secure Escrow Protection</span>
@@ -241,7 +253,7 @@ function Hero() {
       </div>
       
       {/* Right Column: Floating Dashboard */}
-      <div className="flex-1 w-full max-w-2xl xl:max-w-none relative perspective-[1200px] mt-10 xl:mt-0 xl:pl-10">
+      <div className="flex-1 w-full max-w-2xl lg:max-w-none relative perspective-[1200px] mt-10 lg:mt-0 lg:pl-10">
         {/* Background glow for the dashboard */}
         <div className="absolute inset-0 bg-gradient-to-tr from-orange-500/20 via-transparent to-amber-400/10 rounded-[2.5rem] blur-[80px] transform -rotate-6 scale-95" />
         
@@ -249,7 +261,7 @@ function Hero() {
           initial={{ opacity: 0, rotateY: 10, rotateX: 10, y: 30 }}
           animate={{ opacity: 1, rotateY: -5, rotateX: 2, y: 0 }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className="relative w-full aspect-square sm:aspect-[4/3] lg:aspect-[4/3] xl:aspect-[1.1] border border-zinc-700/50 bg-[#050505]/95 backdrop-blur-3xl rounded-[2rem] shadow-[0_0_80px_rgba(249,115,22,0.15)] overflow-hidden flex transform-style-3d group"
+          className="relative w-full aspect-[4/5] sm:aspect-[4/3] lg:aspect-[1.1] border border-zinc-700/50 bg-[#050505]/95 backdrop-blur-3xl rounded-[2rem] shadow-[0_0_80px_rgba(249,115,22,0.15)] overflow-hidden flex transform-style-3d group"
         >
           {/* Dashboard Header */}
           <div className="absolute top-0 left-0 right-0 h-14 border-b border-white/5 bg-zinc-900/40 flex items-center px-6 justify-between backdrop-blur-md z-10">
@@ -270,30 +282,30 @@ function Hero() {
           <div className="pt-20 px-6 pb-6 w-full h-full flex flex-col gap-4">
             
             {/* Top Stats */}
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <motion.div 
                 animate={{ y: [0, -3, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="flex-1 p-5 rounded-2xl border border-white/5 bg-zinc-900/40 shadow-inner backdrop-blur-md"
+                className="flex-1 p-4 sm:p-5 rounded-2xl border border-white/5 bg-zinc-900/40 shadow-inner backdrop-blur-md"
               >
-                <div className="text-zinc-500 text-xs font-semibold mb-1 uppercase tracking-widest flex items-center justify-between">
+                <div className="text-zinc-500 text-[10px] sm:text-xs font-semibold mb-1 uppercase tracking-widest flex items-center justify-between">
                   Earnings <Bitcoin className="w-3.5 h-3.5 text-zinc-600" />
                 </div>
-                <div className="text-2xl font-bold text-white flex items-baseline gap-1 font-mono tracking-tight mt-1">
-                  45,000 <span className="text-sm font-medium text-orange-500 font-sans tracking-normal">sats</span>
+                <div className="text-xl sm:text-2xl font-bold text-white flex items-baseline gap-1 font-mono tracking-tight mt-1">
+                  45,000 <span className="text-xs sm:text-sm font-medium text-orange-500 font-sans tracking-normal">sats</span>
                 </div>
               </motion.div>
               
               <motion.div 
                 animate={{ y: [0, 4, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="flex-1 p-5 rounded-2xl border border-white/5 bg-zinc-900/40 shadow-inner backdrop-blur-md"
+                className="flex-1 p-4 sm:p-5 rounded-2xl border border-white/5 bg-zinc-900/40 shadow-inner backdrop-blur-md"
               >
-                <div className="text-zinc-500 text-xs font-semibold mb-1 uppercase tracking-widest flex items-center justify-between">
+                <div className="text-zinc-500 text-[10px] sm:text-xs font-semibold mb-1 uppercase tracking-widest flex items-center justify-between">
                   Escrow <ShieldCheck className="w-3.5 h-3.5 text-zinc-600" />
                 </div>
-                <div className="text-2xl font-bold text-white flex items-baseline gap-1 font-mono tracking-tight mt-1">
-                  15,000 <span className="text-sm font-medium text-zinc-400 font-sans tracking-normal">sats</span>
+                <div className="text-xl sm:text-2xl font-bold text-white flex items-baseline gap-1 font-mono tracking-tight mt-1">
+                  15,000 <span className="text-xs sm:text-sm font-medium text-zinc-400 font-sans tracking-normal">sats</span>
                 </div>
               </motion.div>
             </div>
@@ -302,7 +314,7 @@ function Hero() {
             <motion.div 
               animate={{ y: [0, -2, 0] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-              className="mt-2 flex-1 rounded-2xl border border-orange-500/20 bg-orange-500/5 p-6 shadow-[0_0_30px_rgba(249,115,22,0.05)] relative overflow-hidden flex flex-col"
+              className="mt-2 flex-1 rounded-2xl border border-orange-500/20 bg-orange-500/5 p-5 sm:p-6 shadow-[0_0_30px_rgba(249,115,22,0.05)] relative overflow-hidden flex flex-col"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-2xl -mt-10 -mr-10"></div>
               

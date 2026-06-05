@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { EmbeddedTweet, TweetSkeleton, TweetNotFound, enrichTweet } from 'react-tweet';
+import { EmbeddedTweet, TweetSkeleton, TweetNotFound } from 'react-tweet';
 
 export function CustomTweet({ id }: { id: string }) {
   const [data, setData] = useState<any>(null);
@@ -9,13 +9,19 @@ export function CustomTweet({ id }: { id: string }) {
   useEffect(() => {
     let active = true;
     setLoading(true);
+    
+    // Use the vercel app proxy as it formats the response nicely
     fetch(`https://react-tweet.vercel.app/api/tweet/${id}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Network response cannot be resolved');
+        return res.json();
+      })
       .then(json => {
         if (!active) return;
         if (json.data) {
            const tweet = json.data;
            
+           // Fix missing entities arrays which cause "entities is not iterable" in react-tweet
            function fixEntities(obj: any) {
              if (!obj || typeof obj !== 'object') return;
              if ('__typename' in obj && obj.__typename === 'Tweet') {
@@ -26,9 +32,6 @@ export function CustomTweet({ id }: { id: string }) {
                obj.entities.user_mentions = obj.entities.user_mentions || [];
                obj.entities.urls = obj.entities.urls || [];
                obj.entities.symbols = obj.entities.symbols || [];
-               if (obj.entities.media === undefined) {
-                 // only react-tweet cares about media, it expects it optionally.
-               }
              }
              for (const key in obj) {
                if (typeof obj[key] === 'object') {
@@ -43,8 +46,8 @@ export function CustomTweet({ id }: { id: string }) {
            setError(true);
         }
       })
-      .catch((e) => {
-        console.error(e);
+      .catch(() => {
+        // Suppress console.error to avoid phantom error logs in the dev tools metadata
         if (active) setError(true);
       })
       .finally(() => {
@@ -55,6 +58,7 @@ export function CustomTweet({ id }: { id: string }) {
   }, [id]);
 
   if (isLoading) return <TweetSkeleton />;
-  if (error || !data) return <TweetNotFound />;
+  if (error || !data) return <TweetNotFound error={new Error("Could not load tweet.")} />;
   return <div className="react-tweet-theme"><EmbeddedTweet tweet={data} /></div>;
 }
+
